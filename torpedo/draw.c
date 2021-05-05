@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 
+
 void draw_model(const struct Model* model)
 {
     draw_triangles(model);

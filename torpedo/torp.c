@@ -7,24 +7,32 @@
 #include <stdio.h>
 #include <math.h>
 
+//window size
+int ww = 960;
+int wh = 720;
+//camera
 double rotateX;
 double rotateY;
 
+//movement
 int t;
 double dt;
 double posx = 0.0;
 double posy = 0.0;
 double posz = 0.0;
+double screw_rot;
+double rot_speed = 800;
 
+//objects
 struct Model body;
 struct Model screw;
 struct Model v_fins;
 struct Model h_fins;
+struct Model seafloor[5][5];
 
-double screw_rot;
-double rot_speed = 800;
-
+//textures
 GLuint torptex;
+GLuint sftex;
 
 
 typedef GLubyte Pixel[3]; /*represents red green blue*/
@@ -37,6 +45,7 @@ GLuint initialize_texture(char* filename)
     GLuint texture_name;
 	
     glGenTextures(1, &texture_name);
+	glBindTexture(GL_TEXTURE_2D, texture_name); 
 
     glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 
@@ -60,6 +69,17 @@ GLuint initialize_texture(char* filename)
     return texture_name;
 }
 
+void create_seafloor()
+{
+	int i;
+	int j;
+	for(i = 0; i < 5; i++){
+		for(j = 0; j < 5; j++){
+			load_model("data/plane.obj", &seafloor[j][i]);
+		}
+	}
+}
+
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -74,15 +94,23 @@ void display()
     glMaterialfv(GL_FRONT, GL_SPECULAR, light_color);
 
     glRotatef(-rotateX, 0, 1.0, 0);
-    glRotatef(-rotateY, 1.0, 0, 0);
+    glRotatef(rotateY, sin(rotateX*M_PI/180), 0, cos(rotateX*M_PI/180));
+	
+	
+	glBindTexture(GL_TEXTURE_2D, torptex);
 	
     draw_model(&body);
 	
 	
     glRotatef(screw_rot, 1.0, 0, 0);
     draw_model(&screw);
+    glRotatef(-screw_rot, 1.0, 0, 0);
 	
     //draw_model(&h_fins);
+	
+	
+	glBindTexture(GL_TEXTURE_2D, sftex);
+    draw_model(&seafloor[0][0]);
 
     glPopMatrix();
 
@@ -109,6 +137,8 @@ void reshape(GLsizei width, GLsizei height)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(50.0, (GLdouble)width / (GLdouble)height, 0.01, 10000.0);
+	ww = width;
+	wh = height;
 }
 
 void mouseHandler(int button, int state, int x, int y)
@@ -117,8 +147,8 @@ void mouseHandler(int button, int state, int x, int y)
 
 void motionHandler(int x, int y)
 {
-    rotateX = x;
-    rotateY = y;
+    rotateX = x*720/(double)ww;
+    rotateY = (y-270)*160/(double)wh;
 
     glutPostRedisplay();
 }
@@ -164,6 +194,7 @@ void initialize()
     glClearDepth(1.0);
 
     torptex = initialize_texture("data/torptexture.png");
+	sftex = initialize_texture("data/seafloor.png");
 	
 	
     glEnable(GL_TEXTURE_2D);
@@ -192,9 +223,14 @@ int main(int argc, char* argv[])
     print_model_info(&h_fins);
     print_bounding_box(&h_fins);*/
 	
+	//create_seafloor();
+	
+	load_model("data/plane.obj", &seafloor[0][0]);
+	
+	
     glutInit(&argc, argv);
 
-    glutInitWindowSize(960, 720);
+    glutInitWindowSize(ww, wh);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     int window = glutCreateWindow("GLUT Window");
     glutSetWindow(window);
@@ -204,7 +240,7 @@ int main(int argc, char* argv[])
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutMouseFunc(mouseHandler);
-    glutMotionFunc(motionHandler);
+    glutPassiveMotionFunc(motionHandler);
 	glutKeyboardFunc(keyboard);
     glutIdleFunc(idle);
 

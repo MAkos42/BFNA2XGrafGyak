@@ -583,3 +583,14 @@ void scale_model(struct Model* model, double sx, double sy, double sz)
         model->vertices[i].z *= sz;
     }
 }
+
+void repos_model(struct Model* model, double tx, double ty, double tz)
+{
+	int i;
+	
+    for (i = 0; i < model->n_vertices; ++i) {
+        model->vertices[i].x += tx;
+        model->vertices[i].y += ty;
+        model->vertices[i].z += tz;
+    }
+}

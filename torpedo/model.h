@@ -242,4 +242,6 @@ void print_bounding_box(const struct Model* model);
  */
 void scale_model(struct Model* model, double sx, double sy, double sz);
 
+void repos_model(struct Model* model, double tx, double ty, double tz);
+
 #endif // MODEL_H
