@@ -118,6 +118,8 @@ int load_model(const char* filename, struct Model* model)
     if (model->n_normals != model->n_vertices) {
         calc_normals(model);
     }
+	
+	fclose(obj_file);
 
     return TRUE;
 }

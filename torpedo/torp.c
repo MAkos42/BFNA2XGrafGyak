@@ -10,16 +10,23 @@
 //window size
 int ww = 960;
 int wh = 720;
+
 //camera
 double rotateX;
 double rotateY;
 
-//movement
+//idő
 int t;
 double dt;
+
+//movement
 double posx = 0.0;
-double posy = 0.0;
+double posy = -5.0;
 double posz = 0.0;
+double hdg = 0.0;
+double pitch = 0.0;
+
+//propeller animáció
 double screw_rot;
 double rot_speed = 800;
 
@@ -28,7 +35,9 @@ struct Model body;
 struct Model screw;
 struct Model v_fins;
 struct Model h_fins;
+struct Model sf;
 struct Model seafloor[5][5];
+
 
 //textures
 GLuint torptex;
@@ -37,47 +46,12 @@ GLuint sftex;
 
 typedef GLubyte Pixel[3]; /*represents red green blue*/
 
-/**
- * Load texture from file and returns with the texture name.
- */
-GLuint initialize_texture(char* filename)
-{
-    GLuint texture_name;
-	
-    glGenTextures(1, &texture_name);
-	glBindTexture(GL_TEXTURE_2D, texture_name); 
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-
-    int width;
-    int height;
-
-    unsigned char* image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_AUTO);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (Pixel*)image);
-
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    //glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    return texture_name;
-}
-
-void create_seafloor()
-{
+void draw_seafloor(){
 	int i;
 	int j;
-	for(i = 0; i < 5; i++){
-		for(j = 0; j < 5; j++){
-			load_model("data/plane.obj", &seafloor[j][i]);
-		}
-	}
+	for(i = 4; i < 0; i--)
+		for(j = 4; j < 0 ; j--)
+			draw_model(&seafloor[i][j]);
 }
 
 void display()
@@ -94,9 +68,10 @@ void display()
     glMaterialfv(GL_FRONT, GL_SPECULAR, light_color);
 
     glRotatef(-rotateX, 0, 1.0, 0);
-    glRotatef(rotateY, sin(rotateX*M_PI/180), 0, cos(rotateX*M_PI/180));
+    glRotatef(rotateY, sin(rotateX*M_PI/180.0), 0, cos(rotateX*M_PI/180.0));
 	
 	
+    glRotatef(-pitch, 0, 0, 1.0);
 	glBindTexture(GL_TEXTURE_2D, torptex);
 	
     draw_model(&body);
@@ -104,13 +79,20 @@ void display()
 	
     glRotatef(screw_rot, 1.0, 0, 0);
     draw_model(&screw);
-    glRotatef(-screw_rot, 1.0, 0, 0);
+    glRotatef(-screw_rot, 1.0, 0, 0);//*/
 	
     //draw_model(&h_fins);
 	
+    glRotatef(pitch, 0, 0, 1.0);
+	
+    glRotatef(-hdg, 0, 1.0, 0);
+	glTranslated(posx, -posy, posz);
 	
 	glBindTexture(GL_TEXTURE_2D, sftex);
-    draw_model(&seafloor[0][0]);
+    draw_model(&sf);
+	
+	
+	draw_seafloor();
 
     glPopMatrix();
 
@@ -122,10 +104,18 @@ void display()
 
 void idle()
 {
+	//calculate time delta
 	int nt = glutGet(GLUT_ELAPSED_TIME);
 	dt = (nt-t)/1000.0;
 	t = nt;
 	
+	//movement
+	posx += rot_speed/120.0 * cos(hdg*M_PI/180) * cos(pitch*M_PI/180) * dt;
+	posz += rot_speed/120.0 * -sin(hdg*M_PI/180) * cos(pitch*M_PI/180) * dt;
+	posy += rot_speed/120.0 * sin(pitch*M_PI/180) * dt;
+	//printf("x:%lf z:%lf\n hdg:%lf spd:n/a\n",posx,posz,hdg);
+	
+	//screw animation
 	screw_rot -= rot_speed*dt;
 	if(screw_rot < 0)
 		screw_rot += 360.0;
@@ -156,6 +146,7 @@ void motionHandler(int x, int y)
 void keyboard(unsigned char key, int x, int y)
 {
 	switch(key){
+		//speed
 		case 'w':
 			if(rot_speed <= 1200)
 				rot_speed+= 50;
@@ -163,11 +154,82 @@ void keyboard(unsigned char key, int x, int y)
 		case 's':
 			if(rot_speed >= 600)
 				rot_speed-= 50;
-		default:
 			break;
 	}
 	
     glutPostRedisplay();
+}
+
+void SpecialInput(int key, int x, int y)
+{
+	switch(key)
+	{
+		//pitch
+		case GLUT_KEY_UP:
+			if (pitch > -10)
+				pitch -= 100*dt;
+			break;
+		case GLUT_KEY_DOWN:
+			if (pitch < 10)
+				pitch += 100*dt;
+			break;
+		//heading
+		case GLUT_KEY_LEFT:
+			hdg += 100*dt;
+			if (hdg >= 360)
+				hdg -=360;
+			break;
+		case GLUT_KEY_RIGHT:
+			hdg -= 100*dt;
+			if (hdg < 0)
+				hdg += 360;
+			break;
+	}
+
+	glutPostRedisplay();
+}
+
+GLuint initialize_texture(char* filename)
+{
+    GLuint texture_name;
+	
+    glGenTextures(1, &texture_name);
+	glBindTexture(GL_TEXTURE_2D, texture_name); 
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+
+    int width;
+    int height;
+
+    unsigned char* image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_AUTO);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (Pixel*)image);
+
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    return texture_name;
+}
+
+void create_seafloor()
+{
+	int i;
+	int j;
+	for(i = 0; i < 5; i++){
+		for(j = 0; j < 5; j++){
+			printf("[%d,%d]\n",i,j);
+			load_model("data/plane.obj", &seafloor[i][j]);
+			repos_model(&seafloor[i][j],(j-2)*512,0,(i-2)*512);
+			print_bounding_box(&seafloor[i][j]);
+		}
+	}
 }
 
 void initialize()
@@ -216,16 +278,20 @@ int main(int argc, char* argv[])
     load_model("data/torp.obj", &body);
     print_model_info(&body);
     print_bounding_box(&body);
+	
     load_model("data/screw.obj", &screw);
     print_model_info(&screw);
-    print_bounding_box(&screw);
-    /*load_model("data/h_fins.obj", &h_fins); //why arent these objects showing?!
+    print_bounding_box(&screw);//*/
+	/*
+    load_model("data/h_fins.obj", &h_fins); //why arent these objects showing?!
     print_model_info(&h_fins);
-    print_bounding_box(&h_fins);*/
+    print_bounding_box(&h_fins);//*/
 	
 	//create_seafloor();
 	
-	load_model("data/plane.obj", &seafloor[0][0]);
+	load_model("data/plane1.obj", &sf);
+    print_model_info(&sf);
+    print_bounding_box(&sf);//*/
 	
 	
     glutInit(&argc, argv);
@@ -242,6 +308,7 @@ int main(int argc, char* argv[])
     glutMouseFunc(mouseHandler);
     glutPassiveMotionFunc(motionHandler);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(SpecialInput);
     glutIdleFunc(idle);
 
     glutMainLoop();
