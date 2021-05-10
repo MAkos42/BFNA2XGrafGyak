@@ -68,18 +68,18 @@ void keyboard(unsigned char key, int x, int y)
     switch (key) {
         //pitch
     case 'w':
-        change_pitch(&(scene.torpedo), -0.5);
+        change_pitch(&(scene.torpedo), -20);
         break;
     case 's':
-        change_pitch(&(scene.torpedo), 0.5);
+        change_pitch(&(scene.torpedo), 20);
         break;
 
         //heading
     case 'a':
-        change_heading(&(scene.torpedo), -0.5);
+        change_heading(&(scene.torpedo), -35);
         break;
     case 'd':
-        change_heading(&(scene.torpedo), 0.5);
+        change_heading(&(scene.torpedo), 35);
         break;
 
         //speed
@@ -106,6 +106,17 @@ void keyboard(unsigned char key, int x, int y)
 void keyboard_up(unsigned char key, int x, int y)
 {
     switch (key) {
+        //pitch
+    case 'w':
+    case 's':
+        change_pitch(&(scene.torpedo), 0.0);
+        break;
+
+        //heading
+    case 'a':
+    case 'd':
+        change_heading(&(scene.torpedo), 0.0);
+        break;
     }
 
     glutPostRedisplay();

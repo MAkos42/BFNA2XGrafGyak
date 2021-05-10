@@ -10,7 +10,8 @@ GLuint load_texture(char* filename)
     int width;
     int height;
 
-    Pixel* image = (Pixel*)SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_AUTO);
+    Pixel* image = (Pixel*)SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGBA);
+
 
     glBindTexture(GL_TEXTURE_2D, texture_name);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (Pixel*)image);
