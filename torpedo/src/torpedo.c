@@ -1,9 +1,9 @@
 #include "torpedo.h"
 #include "utils.h"
 
+#include <math.h>
 #include <obj/draw.h>
 #include <GL/glut.h>
-#include <math.h>
 
 void init_torpedo(Torpedo* torpedo)
 {

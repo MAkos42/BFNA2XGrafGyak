@@ -1,5 +1,7 @@
 #include "init.h"
 
+#include <stdlib.h>
+#include <time.h>
 #include <GL/glut.h>
 
 void init_opengl()
@@ -23,4 +25,18 @@ void init_opengl()
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
+
+    float fogcolor[] = {0.0f, 0.0f, 0.4f, 1.0f};
+
+    glFogf(GL_FOG_MODE, GL_EXP);
+    glFogfv(GL_FOG_COLOR, fogcolor);
+    glFogf(GL_FOG_DENSITY, 0.04f);
+    glHint(GL_FOG_HINT, GL_NICEST);
+    glFogf(GL_FOG_START, 0.0f);
+    glFogf(GL_FOG_END, 1000.0f);
+
+    glEnable(GL_FOG);
+
+
+    srand(time(0));
 }

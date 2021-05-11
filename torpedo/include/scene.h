@@ -3,6 +3,7 @@
 
 #include "camera.h"
 #include "torpedo.h"
+#include "bubble.h"
 #include "texture.h"
 
 #include <obj/model.h>
@@ -13,11 +14,14 @@ typedef struct Scene
     double dt;
     Model seafloor;
     Model surface;
+    Model bubble;
     Torpedo torpedo;
     Material material;
     GLuint torptex;
     GLuint sftex;
     GLuint surfacetex;
+    GLuint bubbletex;
+    Node* bubblelist;
 } Scene;
 
 /**
@@ -48,5 +52,7 @@ void draw_origin();
 void draw_sea_floor(const Scene* scene);
 
 void draw_water_surface(const Scene* scene);
+
+void draw_bubble_list(const Scene* scene);
 
 #endif /* SCENE_H */

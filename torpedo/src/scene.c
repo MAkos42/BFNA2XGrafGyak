@@ -1,6 +1,7 @@
 #include "scene.h"
 #include "torpedo.h"
 #include "utils.h"
+#include "bubble.h"
 
 #include <GL/glut.h>
 #include <math.h>
@@ -9,18 +10,22 @@
 
 void init_scene(Scene* scene)
 {
-    load_model(&(scene->seafloor), "data/plane.obj");
+    load_model(&(scene->seafloor), "data/border.obj");
     load_model(&(scene->surface), "data/plane1.obj");
     init_torpedo(&(scene->torpedo));
     load_model(&(scene->torpedo.model), "data/torp.obj");
     load_model(&(scene->torpedo.screw.model), "data/screw.obj");
     load_model(&(scene->torpedo.vfin.model), "data/v_fins.obj");
     load_model(&(scene->torpedo.hfin.model), "data/h_fins.obj");
+    load_model(&(scene->bubble), "data/bubble.obj");
     printf("models loaded\n");
     scene->torptex = load_texture("data/torptexture.png");
     scene->sftex = load_texture("data/seafloor.png");
     scene->surfacetex = load_texture("data/calm_sea1.png");
+    scene->bubbletex = load_texture("data/bubble.png");
     printf("textures loaded\n");
+
+    push_bubble(&(scene->bubblelist), creat_bubble(0,-3,0));
 
     scene->material.ambient.red = 1.0;
     scene->material.ambient.green = 1.0;
@@ -95,6 +100,10 @@ void draw_scene(const Scene* scene)
     glBindTexture(GL_TEXTURE_2D, scene->surfacetex);
     draw_water_surface(scene);
 
+    //draw bubbles
+    glBindTexture(GL_TEXTURE_2D, scene->bubbletex);
+    draw_bubble_list(scene);
+
 }
 
 void draw_origin()
@@ -132,4 +141,13 @@ void draw_water_surface(const Scene* scene)
     draw_model(&(scene->surface));
     glTranslated(-scene->torpedo.position.x, scene->torpedo.position.y, -scene->torpedo.position.z);
     glRotatef(-scene->torpedo.heading, 0, 1.0, 0);
+}
+
+void draw_bubble_list(const Scene* scene)
+{
+    glRotatef(scene->torpedo.heading - scene->torpedo.vfin.rotation / 4.0 + 180, 0, 1.0, 0);
+    glTranslated(-scene->torpedo.position.x, -scene->torpedo.position.y, -scene->torpedo.position.z);
+    draw_bubbles(scene->bubblelist, &scene->bubble);
+    glTranslated(scene->torpedo.position.x, scene->torpedo.position.y, scene->torpedo.position.z);
+    glRotatef(-scene->torpedo.heading - scene->torpedo.vfin.rotation / 4.0 + 180, 0, 1.0, 0);
 }

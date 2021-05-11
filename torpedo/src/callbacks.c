@@ -1,7 +1,10 @@
 #include "callbacks.h"
 #include "camera.h"
 #include "torpedo.h"
+#include "bubble.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 
 struct {
@@ -129,8 +132,26 @@ void idle()
     scene.dt = (double)(scene.t - last_frame_time) / 1000;
     last_frame_time = scene.t;
 
+    int p = scene.torpedo.velocity;
+    double hdg = deg_to_rad(scene.torpedo.heading);
+    int r = rand();
+    if (r % 200 <= (p * p)) {
+        push_bubble(&(scene.bubblelist), creat_bubble(scene.torpedo.position.x - (2.0 * cos(hdg)) + ((r % 41 - 20) / 100.0), scene.torpedo.position.y - (2.0 * sin(deg_to_rad(scene.torpedo.pitch))) + ((r % 31 - 15) / 100.0), scene.torpedo.position.z - (2.0 * sin(hdg)) + ((r % 51 - 25) / 100.0)));
+    }
+    r = rand();
+    if (r % 200 <= (p * p)) {
+        push_bubble(&(scene.bubblelist), creat_bubble(scene.torpedo.position.x - (2.0 * cos(hdg)) + ((r % 41 - 20) / 100.0), scene.torpedo.position.y - (2.0 * sin(deg_to_rad(scene.torpedo.pitch))) + ((r % 31 - 15) / 100.0), scene.torpedo.position.z - (2.0 * sin(hdg)) + ((r % 51 - 25) / 100.0)));
+    }
+    r = rand();
+    if (r % 400 <= (p * p)) {
+        push_bubble(&(scene.bubblelist), creat_bubble(scene.torpedo.position.x - (2.0 * cos(hdg)) + ((r % 41 - 20) / 100.0), scene.torpedo.position.y - (2.0 * sin(deg_to_rad(scene.torpedo.pitch))) + ((r % 31 - 15) / 100.0), scene.torpedo.position.z - (2.0 * sin(hdg)) + ((r % 51 - 25) / 100.0)));
+    }
+
+
     //update_camera(&camera, elapsed_time);
     update_torpedo(&(scene.torpedo), scene.dt);
+    update_bubbles(&(scene.bubblelist), scene.dt);
+
 
     glutPostRedisplay();
 }
