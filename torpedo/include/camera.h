@@ -3,6 +3,8 @@
 
 #include "utils.h"
 
+#include <GL/glut.h>
+
 /**
  * Camera, as a moving point with direction
  */
@@ -12,6 +14,7 @@ typedef struct Camera
     vec3 rotation;
     vec3 speed;
     double zoom;
+    GLuint helptex;
 } Camera;
 
 /**

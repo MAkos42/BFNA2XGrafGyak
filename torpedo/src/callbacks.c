@@ -23,6 +23,7 @@ void display()
     glPopMatrix();
 
     if (is_preview_visible) {
+        glBindTexture(GL_TEXTURE_2D, camera.helptex);
         show_texture_preview();
     }
 

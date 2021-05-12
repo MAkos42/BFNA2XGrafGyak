@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "texture.h"
 
 #include <GL/glut.h>
 
@@ -16,6 +17,7 @@ void init_camera(Camera* camera)
     camera->speed.y = 0.0;
     camera->speed.z = 0.0;
     camera->zoom = 5.0;
+    camera->helptex = load_texture("data/help.png");
 
     is_preview_visible = FALSE;
 }
